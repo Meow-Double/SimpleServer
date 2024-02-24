@@ -8,7 +8,7 @@ const router = jsonServer.router(db, { foreginSuffix: 'id' });
 const middlewares = jsonServer.defaults();
 
 server.use(express.json());
-server.use(cors());
+server.use(cors({credentials: true, origin: 'http://localhost:5173'}));
 
 server.use(
   jsonServer.rewriter({
@@ -39,14 +39,22 @@ server.post('/auth', function (req, res) {
   }
 
   res.cookie('doggee-auth', '123456', {
-    httpOnly: true,
-    sameSite: 'strict',
+    // httpOnly: true,
+    // sameSite: 'strict',
   });
   res.send({ success: true, data: user });
 });
 
 server.use(middlewares);
 server.use(router);
+
+router.render = function (res, _req) {
+  if (res.statusCode >= 400) {
+    res.jsonp({ success: false, data: res.locals.data });
+  }
+
+  res.jsonp({ success: true, data: res.locals.data });
+};
 
 const port = 3001;
 
